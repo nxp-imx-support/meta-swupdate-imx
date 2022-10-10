@@ -10,8 +10,9 @@ IMAGE_INSTALL = "base-files \
 		util-linux-sfdisk \
 		mmc-utils \
 		e2fsprogs-resize2fs \
+		lua \
 		 "
 
 IMAGE_FSTYPES = "ext4.gz.u-boot ext4 cpio.gz.u-boot"
 
-PACKAGE_EXCLUDE += " jailhouse kernel-module-jailhouse libncursesw5 libpanelw5 libpython3 libreadline8 python3*  perl* apt dpkg "
+PACKAGE_EXCLUDE += " jailhouse kernel-module-jailhouse libncursesw5 libpanelw5 libpython3 python3*  perl* apt dpkg "
