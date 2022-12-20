@@ -1,10 +1,18 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 FILES:${PN} += "/etc/*"
-SRC_URI += " file://0001-enable-env_redunand-bootcount-limit-LF_v5.15.32-2.0.0.patch \
-             file://0002-default-env-LF5.15.32-2.0.0.patch "
+SRC_URI += " file://0001-enable-env_redunand-bootcount-limit-LF_v5.15.71-2.2.0.patch \
+             file://0002-default-env-LF5.15.71-2.2.0.patch"
 
 SWU_HW_REV ?= "1.0"
+
+do_install:append:mx93-nxp-bsp () {
+
+    echo "/dev/mmcblk1 0x400000 0x2000" > ${D}/${sysconfdir}/fw_env.config
+    echo "/dev/mmcblk1 0x402000 0x2000" >> ${D}/${sysconfdir}/fw_env.config
+    echo "${MACHINE} ${SWU_HW_REV}" > ${D}/${sysconfdir}/hwrevision
+
+}
 
 do_install:append:mx8qxp-nxp-bsp () {
 
