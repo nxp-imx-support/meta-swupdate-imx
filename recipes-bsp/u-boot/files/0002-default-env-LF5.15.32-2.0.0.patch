@@ -129,7 +129,7 @@
 +	"loadswuramdisk=mmc read  ${initrd_addr} 0x15000 0x15000\0" \
 +        "swuboot=echo swuboot ramdisk;run loadswuimage;run loadswufdt;run loadswuramdisk;run swuargs;booti ${loadaddr} ${initrd_addr} ${fdt_addr}\0" \
 +        "altbootcmd=if test ${bootslot} = singlerescue ||  test ${bootslot} = singlenormal; then run altbootsingle; fi;" \
-+	"if test ${bootslot} = dualA ||  test ${bootslot} = dualB; then run altbootdual; fi\0"
++	"if test ${bootslot} = dualA ||  test ${bootslot} = dualB; then run altbootdual; fi\0" \
  	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
 +	   "if test ${bootslot} = singlerescue;then run swuboot; fi;" \
 +	   "run adjustbootsource;" \
