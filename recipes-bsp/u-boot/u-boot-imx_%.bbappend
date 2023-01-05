@@ -8,8 +8,8 @@ SWU_HW_REV ?= "1.0"
 
 do_install:append:mx93-nxp-bsp () {
 
-    echo "/dev/mmcblk1 0x400000 0x2000" > ${D}/${sysconfdir}/fw_env.config
-    echo "/dev/mmcblk1 0x402000 0x2000" >> ${D}/${sysconfdir}/fw_env.config
+    echo "/dev/mmcblk0 0x400000 0x2000" > ${D}/${sysconfdir}/fw_env.config
+    echo "/dev/mmcblk0 0x402000 0x2000" >> ${D}/${sysconfdir}/fw_env.config
     echo "${MACHINE} ${SWU_HW_REV}" > ${D}/${sysconfdir}/hwrevision
 
 }
