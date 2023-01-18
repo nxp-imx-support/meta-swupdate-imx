@@ -1,1 +1,0 @@
-SWUpdate for i.MX.
