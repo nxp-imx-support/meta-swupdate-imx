@@ -1,0 +1,94 @@
+diff --git a/board/freescale/imx8qxp_mek/imx8qxp_mek.c b/board/freescale/imx8qxp_mek/imx8qxp_mek.c
+index 6249171295..65c6bd4636 100644
+--- a/board/freescale/imx8qxp_mek/imx8qxp_mek.c
++++ b/board/freescale/imx8qxp_mek/imx8qxp_mek.c
+@@ -23,6 +23,7 @@
+ #include <asm/arch/sys_proto.h>
+ #include <usb.h>
+ #include "../common/tcpc.h"
++#include <timestamp.h>
+ 
+ DECLARE_GLOBAL_DATA_PTR;
+ 
+@@ -272,6 +273,7 @@ int board_late_init(void)
+ #else
+ 	env_set("board_rev", "iMX8QXP");
+ #endif
++	env_set("u-boot_version", PLAIN_VERSION"("U_BOOT_DATE"-"U_BOOT_TIME")");
+ #endif
+ 
+ 	env_set("sec_boot", "no");
+diff --git a/configs/imx8qxp_mek_defconfig b/configs/imx8qxp_mek_defconfig
+index c40544c209..a43e38fbef 100644
+--- a/configs/imx8qxp_mek_defconfig
++++ b/configs/imx8qxp_mek_defconfig
+@@ -38,7 +38,7 @@ CONFIG_OF_BOARD_SETUP=y
+ CONFIG_OF_SYSTEM_SETUP=y
+ CONFIG_BOOTDELAY=3
+ CONFIG_USE_BOOTCOMMAND=y
+-CONFIG_BOOTCOMMAND="mmc dev ${mmcdev}; if mmc rescan; then if run loadbootscript; then run bootscript; else if test ${sec_boot} = yes; then if run loadcntr; then run mmcboot; else run netboot; fi; else if run loadimage; then run mmcboot; else run netboot; fi; fi; fi; else booti ${loadaddr} - ${fdt_addr}; fi"
++CONFIG_BOOTCOMMAND="if test ${bootslot} = singlerescue; then run swuboot; fi; run adjustbootsource; mmc dev ${mmcdev}; if mmc rescan; then if run loadbootscript; then run bootscript; else if test ${sec_boot} = yes; then if run loadcntr; then run mmcboot; else run netboot; fi; else if run loadimage; then run mmcboot; else run netboot; fi; fi; fi; else booti ${loadaddr} - ${fdt_addr}; fi"
+ CONFIG_LOG=y
+ CONFIG_BOARD_EARLY_INIT_F=y
+ CONFIG_SPL_MAX_SIZE=0x30000
+diff --git a/include/configs/imx8qxp_mek.h b/include/configs/imx8qxp_mek.h
+index ac13dbd65f..df32d3c562 100644
+--- a/include/configs/imx8qxp_mek.h
++++ b/include/configs/imx8qxp_mek.h
+@@ -9,6 +9,7 @@
+ #include <linux/sizes.h>
+ #include <linux/stringify.h>
+ #include <asm/arch/imx-regs.h>
++#include <version.h>
+ 
+ #include "imx_env.h"
+ 
+@@ -36,7 +37,7 @@
+ 
+ #define CFG_MFG_ENV_SETTINGS \
+ 	CFG_MFG_ENV_SETTINGS_DEFAULT \
+-	"initrd_addr=0x83100000\0" \
++	"initrd_addr=0xd2100000\0" \
+ 	"initrd_high=0xffffffffffffffff\0" \
+ 	"emmc_dev=0\0" \
+ 	"sd_dev=1\0"
+@@ -102,7 +103,8 @@
+ 	"mmcpart=1\0" \
+ 	"mmcroot=/dev/mmcblk1p2 rootwait rw\0" \
+ 	"mmcautodetect=yes\0" \
+-	"mmcargs=setenv bootargs console=${console},${baudrate} earlycon root=${mmcroot}\0 " \
++	"mmcargs=setenv bootargs console=${console},${baudrate} earlycon root=${mmcroot} "\
++        "cur_slot=${bootslot} U-Boot_ver=${u-boot_version}\0"\
+ 	"loadbootscript=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
+ 	"bootscript=echo Running bootscript from mmc ...; " \
+ 		"source\0" \
+@@ -158,7 +160,28 @@
+ 			"else " \
+ 				"booti; " \
+ 			"fi;" \
+-		"fi;\0"
++		"fi;\0" \
++	"bootslot=dualA\0" \
++	"u-boot_version=null\0" \
++	"usb_port=1\0" \
++	"post_opt=saveenv;\0" \
++	"adjustbootsource=if test ${bootslot} = dualA || test ${bootslot} = singlenormal; then run adjustbootsourceA; fi;" \
++        "if test ${bootslot} = dualB; then run adjustbootsourceB; fi\0" \
++	"altbootusb=echo Boot Fail! Get into usb fastboot download.;fastboot usb ${usb_port}\0" \
++	"altbootsingle=if test ${bootslot} = singlerescue; then run altbootusb; fi; if test ${bootslot} = singlenormal; then run swuboot; fi\0" \
++	"adjustbootsourceB=echo RootFs Slot B; setenv mmcpart 3; setenv mmcroot /dev/mmcblk${mmcdev}p4 rootwait rw\0" \
++	"adjustbootsourceA=echo RootFs Slot A; setenv mmcpart 1; setenv mmcroot /dev/mmcblk${mmcdev}p2 rootwait rw\0" \
++	"altbootRollbackB=echo Rolling back to slot dualB;setenv bootslot dualB;run post_opt;run bootcmd\0" \
++	"altbootRollbackA=echo Rolling back to slot dualA;setenv bootslot dualA;run post_opt;run bootcmd\0" \
++	"altbootdual=if test ${bootslot} = dualA ; then run altbootRollbackB; fi; if test ${bootslot} = dualB ; then run altbootRollbackA; fi;\0" \
++	"swuargs=setenv bootargs console=${console},${baudrate} earlycon=${earlycon},${baudrate} " \
++        "cur_slot=${bootslot} U-Boot_ver=${u-boot_version}\0"\
++	"loadswuimage=mmc read  ${loadaddr} 0x4000 0xF000\0" \
++	"loadswufdt=mmc read  ${fdt_addr} 0x13000 0x200\0" \
++	"loadswuramdisk=mmc read  ${initrd_addr} 0x15000 0xF000\0" \
++        "swuboot=echo swuboot ramdisk;run loadswuimage;run loadswufdt;run loadswuramdisk;run swuargs;booti ${loadaddr} ${initrd_addr} ${fdt_addr}\0" \
++        "altbootcmd=if test ${bootslot} = singlerescue ||  test ${bootslot} = singlenormal; then run altbootsingle; fi;" \
++	"if test ${bootslot} = dualA ||  test ${bootslot} = dualB; then run altbootdual; fi\0"
+ 
+ /* Link Definitions */
+ 
