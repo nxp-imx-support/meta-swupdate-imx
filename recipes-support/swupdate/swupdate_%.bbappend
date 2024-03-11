@@ -6,7 +6,7 @@ SRC_URI += "file://swupdate-sysrestart.service \
 	file://swupdate.cfg \
 	file://swu_public.pem \
 	file://0001-mongoose-enable-cgi.patch \
-    file://0002-add-sysinfo.cgi.patch  \
+	file://sysinfo.cgi  \
 "
 
 FILES:${PN} += " \
@@ -22,7 +22,6 @@ do_install:append () {
 	install -m 644 ${WORKDIR}/swu_public.pem ${D}/${sysconfdir}
 
 	install -m 644 ${WORKDIR}/swupdate-sysrestart.service ${D}${systemd_system_unitdir}
-
-	chmod 0755 ${D}/www/sysinfo.cgi
+	install -m 0755 ${WORKDIR}/sysinfo.cgi ${D}/www/sysinfo.cgi
 }
 
