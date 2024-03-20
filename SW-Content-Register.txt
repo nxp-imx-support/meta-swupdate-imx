@@ -1,0 +1,9 @@
+NXP Software Content Register
+
+Package:            meta-swupdate-imx
+Version:            1.0
+Outgoing License:   LA_OPT_NXP_Software_License - Additional Distribution License granted, license in Section 2.3 applies
+License File:       LICENSE.txt
+Description:  		Yocto layer for SWUpdate.
+Release Location:   https://github.com/nxp-imx-support/meta-swupdate-imx
+Origin:             NXP (LA_OPT_NXP_Software_License - Additional Distribution License granted, license in Section 2.3 applies)
